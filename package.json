@@ -1,0 +1,86 @@
+{
+  "name": "@lpm.dev/neo.template",
+  "version": "1.0.0",
+  "description": "Modern, lightweight template engine - Mustache/Handlebars syntax, tree-shakeable, zero dependencies",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./parser": {
+      "types": "./dist/parser/index.d.ts",
+      "import": "./dist/parser/index.js",
+      "require": "./dist/parser/index.cjs"
+    },
+    "./compiler": {
+      "types": "./dist/compiler/index.d.ts",
+      "import": "./dist/compiler/index.js",
+      "require": "./dist/compiler/index.cjs"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js",
+      "require": "./dist/runtime/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    ".lpm",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "keywords": [
+    "lpm",
+    "template",
+    "mustache",
+    "handlebars",
+    "templating",
+    "template-engine",
+    "zero-dependencies",
+    "tree-shakeable",
+    "typescript",
+    "esm"
+  ],
+  "author": "neo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ne-ooo/neo.template"
+  },
+  "bugs": {
+    "url": "https://github.com/ne-ooo/neo.template/issues"
+  },
+  "homepage": "https://github.com/ne-ooo/neo.template#readme",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "mustache": "^4.2.0",
+    "handlebars": "^4.7.8",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
