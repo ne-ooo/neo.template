@@ -1,473 +1,282 @@
 # @lpm.dev/neo.template
 
-> Modern, lightweight template engine with Mustache/Handlebars syntax
-
-**17x smaller than Handlebars** · **TypeScript-first** · **Zero dependencies** · **Tree-shakeable**
-
-[![Bundle Size](https://img.shields.io/badge/bundle-12%20KB-success)](https://bundlephobia.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-83%2F83-success)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-
-## Why neo.template?
-
-The JavaScript template engine ecosystem is dominated by old, heavy libraries:
-
-- **Handlebars**: 206 KB, CommonJS, multiple dependencies
-- **Mustache.js**: 20 KB, 5 years since last major update
-- **Modern alternatives**: Different syntax, learning curve
-
-**neo.template** brings the best of both worlds:
-
-| Feature | neo.template | Mustache.js | Handlebars |
-|---------|--------------|-------------|------------|
-| **Size** | **12 KB** | 20 KB | 206 KB |
-| **Format** | ESM + CJS | CommonJS | CommonJS |
-| **TypeScript** | ✅ Native | ❌ Types only | ✅ Included |
-| **Tree-shakeable** | ✅ Yes | ❌ No | ❌ No |
-| **Dependencies** | **0** | 0 | Multiple |
-| **Syntax** | Mustache/Handlebars | Mustache | Handlebars |
-
-## Installation
-
-```bash
-lpm install @lpm.dev/neo.template
-```
-
-```bash
-lpm install @lpm.dev/neo.template
-```
-
-```bash
-lpm install @lpm.dev/neo.template
-```
-
-## Quick Start
-
-```typescript
-import { render, compile } from '@lpm.dev/neo.template'
-
-// Simple rendering
-const result = render('Hello {{name}}!', { name: 'World' })
-console.log(result) // => 'Hello World!'
-
-// Compile once, render many times (faster)
-const template = compile('Hello {{name}}!')
-console.log(template({ name: 'Alice' })) // => 'Hello Alice!'
-console.log(template({ name: 'Bob' }))   // => 'Hello Bob!'
-```
+`@lpm.dev/neo.template` renders variables, sections, inverted sections,
+comments, and partials with a Mustache-style syntax.
 
 ## Features
 
-### ✨ Full Mustache/Handlebars Syntax
+- **Templates:** Renders variables, dotted paths, sections, inverted sections,
+  comments, and partials.
+- **Escaping:** Variable tags escape HTML characters by default.
+- **Reusable functions:** Compiles one template for multiple context objects.
+- **Parser API:** Tokenizes templates and exposes their abstract syntax trees.
+- **Module formats:** The package provides ESM and CommonJS entry points.
+- **Dependency surface:** The package has no runtime dependencies.
 
-```typescript
-import { render } from '@lpm.dev/neo.template'
+## Install
 
-// Variables (HTML-escaped by default)
-render('{{name}}', { name: '<script>' })
-// => '&lt;script&gt;'
+Install the package with LPM:
 
-// Unescaped output
-render('{{{html}}}', { html: '<strong>Bold</strong>' })
-// => '<strong>Bold</strong>'
-
-// Sections (loops)
-render('{{#items}}{{.}} {{/items}}', { items: [1, 2, 3] })
-// => '1 2 3 '
-
-// Inverted sections
-render('{{^items}}No items{{/items}}', { items: [] })
-// => 'No items'
-
-// Comments (ignored in output)
-render('Hello{{! this is ignored}} World')
-// => 'Hello World'
+```bash
+lpm install @lpm.dev/neo.template
 ```
 
-### 🔄 Array Iteration
+## Quick start
 
 ```typescript
-// Array of primitives
-render('{{#items}}{{.}} {{/items}}', { 
-  items: [1, 2, 3] 
-})
-// => '1 2 3 '
+import { compile, render } from "@lpm.dev/neo.template";
 
-// Array of objects
-render('{{#users}}<li>{{name}}</li>{{/users}}', {
-  users: [
-    { name: 'Alice' },
-    { name: 'Bob' },
-    { name: 'Charlie' }
-  ]
-})
-// => '<li>Alice</li><li>Bob</li><li>Charlie</li>'
+const result = render("Hello {{name}}!", { name: "World" });
+console.log(result); // "Hello World!"
+
+const template = compile("Hello {{name}}!");
+console.log(template({ name: "Alice" })); // "Hello Alice!"
+console.log(template({ name: "Bob" })); // "Hello Bob!"
 ```
 
-### 🎯 Nested Contexts
+## API
+
+### `render(template, context?, options?): string`
+
+`render()` tokenizes, parses, compiles, and renders one template.
+
+**Parameters**
+
+| Name       | Type              | Default  | Description                                |
+| ---------- | ----------------- | -------- | ------------------------------------------ |
+| `template` | `string`          | Required | The source template.                       |
+| `context`  | `TemplateContext` | `{}`     | The values for variables and sections.     |
+| `options`  | `TemplateOptions` | `{}`     | The escaping, partial, and helper options. |
+
+**Returns:** `string` — The rendered text.
 
 ```typescript
-render(`
-  {{#user}}
-    <h1>{{name}}</h1>
-    {{#posts}}
-      <article>{{title}}</article>
-    {{/posts}}
-  {{/user}}
-`, {
-  user: {
-    name: 'John',
-    posts: [
-      { title: 'Post 1' },
-      { title: 'Post 2' }
-    ]
-  }
-})
-```
-
-### 📍 Dotted Paths
-
-```typescript
-render('{{user.profile.name}}', {
-  user: {
-    profile: {
-      name: 'Alice'
-    }
-  }
-})
-// => 'Alice'
-```
-
-### 🛡️ XSS Protection
-
-HTML is escaped by default for security:
-
-```typescript
-render('{{html}}', { html: '<script>alert("xss")</script>' })
-// => '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;'
-
-// Explicitly unescaped when you need it
-render('{{{html}}}', { html: '<strong>Safe HTML</strong>' })
-// => '<strong>Safe HTML</strong>'
-```
-
-## API Reference
-
-### `render(template, context, options?)`
-
-Renders a template with context data. This parses, compiles, and executes in one call.
-
-```typescript
-import { render } from '@lpm.dev/neo.template'
+import { render } from "@lpm.dev/neo.template";
 
 const output = render(
-  'Hello {{name}}!',
-  { name: 'World' },
-  { noEscape: false } // optional
-)
+  "Hello {{name}}!",
+  { name: "World" },
+  { noEscape: false },
+);
 ```
 
-**Parameters:**
-- `template` (string): Template string with Mustache/Handlebars syntax
-- `context` (object): Data object for template variables
-- `options` (object, optional):
-  - `noEscape` (boolean): Disable HTML escaping globally
-  - `partials` (object | function): Partial templates (see below)
+### `compile(template, options?): CompiledTemplate`
 
-**Returns:** string
-
-**Use when:** Rendering templates once or infrequently.
-
-### `compile(template, options?)`
-
-Compiles a template to a reusable function. More efficient for repeated rendering.
+`compile()` returns a reusable function that accepts a context object.
 
 ```typescript
-import { compile } from '@lpm.dev/neo.template'
+import { compile } from "@lpm.dev/neo.template";
 
-const template = compile('Hello {{name}}!')
+const template = compile("Hello {{name}}!");
 
-// Render many times with different data
-template({ name: 'Alice' })  // => 'Hello Alice!'
-template({ name: 'Bob' })    // => 'Hello Bob!'
-template({ name: 'Charlie' }) // => 'Hello Charlie!'
+template({ name: "Alice" }); // "Hello Alice!"
+template({ name: "Bob" }); // "Hello Bob!"
+template({ name: "Charlie" }); // "Hello Charlie!"
 ```
 
-**Parameters:**
-- `template` (string): Template string
-- `options` (object, optional): Same as `render()`
+If the application renders the same template more than once, use `compile()`.
 
-**Returns:** `(context: object) => string`
+### `tokenize(template): Token[]`
 
-**Use when:** Rendering the same template multiple times with different data.
-
-### `tokenize(template)`
-
-Low-level API: Converts template string to tokens.
+`tokenize()` converts a template string into tokens with line and column
+positions.
 
 ```typescript
-import { tokenize } from '@lpm.dev/neo.template'
+import { tokenize } from "@lpm.dev/neo.template";
 
-const tokens = tokenize('Hello {{name}}!')
-// Returns array of tokens for parser
+const tokens = tokenize("Hello {{name}}!");
 ```
 
-**Use when:** Building tools or debugging template parsing.
+The function throws `TemplateError` for an unclosed tag.
 
-### `parse(tokens)`
+### `parse(tokens): ASTNode[]`
 
-Low-level API: Converts tokens to Abstract Syntax Tree (AST).
+`parse()` converts a token array into an abstract syntax tree.
 
 ```typescript
-import { tokenize, parse } from '@lpm.dev/neo.template'
+import { parse, tokenize } from "@lpm.dev/neo.template";
 
-const tokens = tokenize('Hello {{name}}!')
-const ast = parse(tokens)
-// Returns AST nodes
+const tokens = tokenize("Hello {{name}}!");
+const ast = parse(tokens);
 ```
 
-**Use when:** Analyzing template structure or building custom compilers.
+The function throws `TemplateError` for an unexpected, mismatched, or unclosed
+section tag.
 
-## Syntax Guide
+### `escapeHTML(value): string`
 
-### Variables
+`escapeHTML()` replaces `&`, `<`, `>`, `"`, `'`, and `/` with HTML entities.
 
 ```typescript
-// Simple variable
+import { escapeHTML } from "@lpm.dev/neo.template";
+
+escapeHTML("<script>"); // "&lt;script&gt;"
+escapeHTML("AT&T"); // "AT&amp;T"
+```
+
+### `getValue(context, path): unknown`
+
+`getValue()` reads a dotted path from a context object. The path `.` reads the
+current array item.
+
+```typescript
+import { getValue } from "@lpm.dev/neo.template";
+
+getValue({ user: { name: "Alice" } }, "user.name"); // "Alice"
+getValue({ user: { name: "Alice" } }, "user.age"); // undefined
+```
+
+### `TemplateOptions`
+
+```typescript
+interface TemplateOptions {
+  helpers?: Record<string, HelperFunction>;
+  partials?: Record<string, string> | PartialResolver;
+  noEscape?: boolean;
+}
+```
+
+`partials` accepts a name-to-template map or a resolver function. `helpers`
+supplies functions for names that the context does not contain.
+
+`noEscape: true` disables HTML escaping for all variable tags.
+
+## Syntax
+
+### Variables and paths
+
+Variable tags escape HTML characters by default. Dotted paths read nested
+context values.
+
+```handlebars
 {{name}}
-
-// Dotted path
 {{user.profile.name}}
-
-// Current context (in arrays)
 {{#items}}{{.}}{{/items}}
 ```
 
 ### Sections
 
-Sections iterate over arrays or conditionally render based on truthiness:
+Sections render for truthy values. They iterate over arrays and merge object
+values into the current context.
 
-```typescript
-// Array iteration
+```handlebars
 {{#users}}
   <li>{{name}}</li>
 {{/users}}
 
-// Conditional rendering (truthy)
 {{#isLoggedIn}}
   Welcome back!
 {{/isLoggedIn}}
-
-// Nested sections
-{{#article}}
-  {{#comments}}
-    <div>{{text}}</div>
-  {{/comments}}
-{{/article}}
 ```
 
-### Inverted Sections
+The package treats `false`, `0`, `null`, `undefined`, an empty string, and an
+empty array as false values.
 
-Render when value is falsy or empty:
+### Inverted sections
 
-```typescript
+Inverted sections render for false values.
+
+```handlebars
 {{^items}}
   <p>No items found</p>
 {{/items}}
-
-{{^isLoggedIn}}
-  <p>Please log in</p>
-{{/isLoggedIn}}
 ```
 
-**Falsy values:** `false`, `0`, `null`, `undefined`, `''`, `[]`
+### Unescaped output
 
-### Unescaped Output
+Triple braces and ampersand tags return a value without HTML escaping.
 
-```typescript
-// Triple braces
+```handlebars
 {{{htmlContent}}}
-
-// Ampersand syntax
 {{&htmlContent}}
 ```
 
 ### Comments
 
-```typescript
-{{! This is a comment and won't appear in output }}
+Comments do not appear in the output.
 
-{{! 
-  Multi-line comments
-  are also supported
-}}
+```handlebars
+{{! This text does not appear in the output. }}
 ```
 
 ### Partials
 
+Partials render with the current context.
+
 ```typescript
 const options = {
   partials: {
-    header: '<h1>{{title}}</h1>',
-    footer: '<footer>{{year}}</footer>'
-  }
-}
+    header: "<h1>{{title}}</h1>",
+    footer: "<footer>{{year}}</footer>",
+  },
+};
 
-render('{{> header}} Content {{> footer}}', context, options)
+render("{{> header}} Content {{> footer}}", context, options);
 ```
 
-## Advanced Usage
-
-### Partials
-
-Partials allow template reuse:
-
-```typescript
-import { render } from '@lpm.dev/neo.template'
-
-const template = `
-  {{> header}}
-  <main>{{content}}</main>
-  {{> footer}}
-`
-
-const context = {
-  title: 'My Page',
-  content: 'Page content',
-  year: 2026
-}
-
-const options = {
-  partials: {
-    header: '<header><h1>{{title}}</h1></header>',
-    footer: '<footer>&copy; {{year}}</footer>'
-  }
-}
-
-const output = render(template, context, options)
-```
-
-**Dynamic partials:**
+A resolver function can load a partial by name:
 
 ```typescript
 const options = {
-  partials: (name) => {
-    // Load partials dynamically
-    return loadPartialFromFile(name)
-  }
-}
+  partials: (name: string) => loadPartialFromFile(name),
+};
 ```
 
-### Disable Escaping
+### Helpers
+
+If the context does not contain a name, a helper can supply its value.
 
 ```typescript
-// Disable escaping globally
-render('{{html}}', { html: '<b>Bold</b>' }, { noEscape: true })
-// => '<b>Bold</b>'
-
-// Or use unescaped syntax
-render('{{{html}}}', { html: '<b>Bold</b>' })
-// => '<b>Bold</b>'
+const output = render("Generated: {{timestamp}}", context, {
+  helpers: {
+    timestamp: () => new Date().toISOString(),
+  },
+});
 ```
 
-### TypeScript
+## Behavior and limits
 
-Full TypeScript support with type inference:
+- `render()` compiles the template for each call.
+- `compile()` reuses the parsed and compiled template.
+- A missing variable renders as an empty string.
+- A missing partial renders as an empty string.
+- A function section receives the current context and its return value becomes
+  section output.
+- Object and array sections inherit values from their parent context.
 
-```typescript
-import { render, compile, type TemplateContext } from '@lpm.dev/neo.template'
+This package supports a focused Mustache-style syntax. It does not implement all
+Mustache.js or Handlebars behavior.
 
-interface User {
-  name: string
-  email: string
-  posts: Array<{ title: string }>
-}
+The package does not support Handlebars block helpers, `@index`, `@key`, helper
+arguments, or `with` syntax.
 
-const context: TemplateContext = {
-  user: {
-    name: 'Alice',
-    email: 'alice@example.com',
-    posts: [{ title: 'Post 1' }]
-  }
-}
+## Security
 
-const template = compile<User>('{{user.name}}')
-const output = template(context) // Type-safe!
-```
+`@lpm.dev/neo.template` escapes HTML characters in variable tags by default. It
+is not a general sanitizer for HTML, JavaScript, CSS, or URLs.
 
-## Migration Guide
+- Triple braces and ampersand tags return unescaped values.
+- `noEscape: true` disables escaping for all variable tags.
+- Partials and template text become output without sanitization.
+- Helper values in variable tags follow the tag's escaping behavior.
+- Function-section return values are not escaped.
+- Template compilation uses the JavaScript `Function` constructor.
+- The application must validate templates, partials, URLs, and context-specific
+  output.
 
-### From Mustache.js
+Do not use untrusted HTML with triple braces, ampersand tags, or
+`noEscape: true`.
 
-neo.template is fully compatible with Mustache.js syntax:
-
-```typescript
-// Before (Mustache.js)
-import Mustache from 'mustache'
-const output = Mustache.render('Hello {{name}}!', { name: 'World' })
-
-// After (neo.template)
-import { render } from '@lpm.dev/neo.template'
-const output = render('Hello {{name}}!', { name: 'World' })
-```
-
-**Differences:**
-- ✅ Same syntax
-- ✅ Same semantics
-- ✅ 40% smaller bundle
-- ✅ TypeScript support
-- ✅ Modern ESM
-
-### From Handlebars
-
-Most Handlebars templates work with minimal changes:
-
-```typescript
-// Handlebars syntax that works:
-{{variable}}
-{{#each items}}{{this}}{{/each}}  // Use {{#items}}{{.}}{{/items}}
-{{#if condition}}...{{/if}}       // Use {{#condition}}...{{/condition}}
-{{{raw}}}
-
-// Not yet supported:
-{{#each items}}{{@index}}{{/each}} // Helpers (@index, @key, etc.)
-{{#with user}}...{{/with}}         // Use {{#user}}...{{/user}}
-{{helper arg1 arg2}}               // Custom helpers (planned)
-```
-
-**Migration steps:**
-1. Replace `{{#each}}` with section syntax: `{{#items}}`
-2. Replace `{{#if}}` with sections: `{{#condition}}`
-3. Replace `{{this}}` with `{{.}}`
-4. Remove custom helpers (or wait for helper support)
-
-## Performance
-
-neo.template is optimized for speed and bundle size:
-
-### Bundle Size
-
-```
-neo.template:  12 KB   ⚡️ (17x smaller than Handlebars!)
-Mustache.js:   20 KB
-Handlebars:    206 KB
-```
-
-### Execution Speed
-
-Benchmarks show competitive performance with established libraries. See `npm run bench` for detailed results.
-
-**Tips for best performance:**
-1. **Use `compile()` for repeated rendering** - Compile once, render many times
-2. **Keep templates simple** - Complex logic belongs in your data layer
-3. **Pre-compile in build step** - For maximum runtime performance
+A Content Security Policy that blocks `unsafe-eval` also blocks `render()` and
+`compile()`.
 
 ## Examples
 
-### User List
+### Render a user list
 
 ```typescript
+import { render } from "@lpm.dev/neo.template";
+
 const template = `
   <ul class="users">
     {{#users}}
@@ -483,85 +292,101 @@ const template = `
       <li>No users found</li>
     {{/users}}
   </ul>
-`
+`;
 
 const context = {
   users: [
     {
-      name: 'Alice',
-      email: 'alice@example.com',
-      posts: [{ title: 'Hello World' }]
-    }
-  ]
-}
+      name: "Alice",
+      email: "alice@example.com",
+      posts: [{ title: "Hello World" }],
+    },
+  ],
+};
 
-const output = render(template, context)
+const output = render(template, context);
 ```
 
-### Conditional Content
+### Use typed context values
 
 ```typescript
-const template = `
-  {{#user}}
-    <div class="logged-in">
-      Welcome, {{name}}!
-      <a href="/logout">Logout</a>
-    </div>
-  {{/user}}
-  {{^user}}
-    <div class="logged-out">
-      <a href="/login">Login</a>
-    </div>
-  {{/user}}
-`
+import { compile } from "@lpm.dev/neo.template";
+import type { TemplateContext } from "@lpm.dev/neo.template";
+
+const context: TemplateContext = {
+  user: {
+    name: "Alice",
+    email: "alice@example.com",
+    posts: [{ title: "Post 1" }],
+  },
+};
+
+const template = compile("{{user.name}}");
+const output = template(context);
 ```
 
-### Nested Data
+## Migration from `Mustache.js`
 
-```typescript
-const template = `
-  {{#article}}
-    <article>
-      <h1>{{title}}</h1>
-      <p>By {{author.name}}</p>
-      
-      <div class="content">{{content}}</div>
-      
-      <section class="comments">
-        {{#comments}}
-          <div class="comment">
-            <strong>{{user.name}}</strong>
-            <p>{{text}}</p>
-          </div>
-        {{/comments}}
-        {{^comments}}
-          <p>No comments yet</p>
-        {{/comments}}
-      </section>
-    </article>
-  {{/article}}
-`
+Basic variables, sections, inverted sections, comments, and partials have
+similar syntax. The package is not a complete Mustache.js implementation.
+
+```diff
+- import Mustache from "mustache";
+- const output = Mustache.render("Hello {{name}}!", { name: "World" });
++ import { render } from "@lpm.dev/neo.template";
++ const output = render("Hello {{name}}!", { name: "World" });
 ```
 
-## Tree-Shaking
+Run tests for lambdas, partial indentation, delimiter changes, whitespace
+behavior, and other Mustache.js features before migration.
 
-Import only what you need for optimal bundle size:
+## Migration from `Handlebars`
 
-```typescript
-// Import just render (smallest)
-import { render } from '@lpm.dev/neo.template'
+Replace common Handlebars blocks with sections:
 
-// Import specific functions
-import { compile, tokenize } from '@lpm.dev/neo.template'
+| Handlebars                         | This package                      |
+| ---------------------------------- | --------------------------------- |
+| `{{#each items}}{{this}}{{/each}}` | `{{#items}}{{.}}{{/items}}`       |
+| `{{#if condition}}...{{/if}}`      | `{{#condition}}...{{/condition}}` |
+| `{{#with user}}...{{/with}}`       | `{{#user}}...{{/user}}`           |
 
-// Import from subpaths (even more granular)
-import { tokenize } from '@lpm.dev/neo.template/parser'
-import { escapeHTML } from '@lpm.dev/neo.template/runtime'
+Custom helper arguments, block helpers, `@index`, and `@key` do not map
+directly. Rewrite these templates before migration.
+
+## Performance
+
+The repository contains benchmarks for rendering, compiled execution, arrays,
+objects, nesting, and HTML escaping.
+
+See [BENCHMARKS.md](./BENCHMARKS.md) for the environment, method, results, and
+limits.
+
+Run the benchmark suite:
+
+```bash
+lpm run bench
 ```
 
-## Browser Support
+Use `compile()` for repeated rendering. Benchmark results depend on the runtime,
+computer, template, and context data.
 
-- ✅ Chrome, Firefox, Safari, Edge (latest 2 versions)
-- ✅ Node.js 18+
-- ✅ Deno, Bun (ESM)
-- ✅ All modern bundlers (Vite, Webpack, Rollup, etc.)
+## Runtime support
+
+- **Node.js:** 18 or later
+- **Browsers:** Current Chrome, Firefox, Safari, and Edge versions
+- **Other runtimes:** Deno and Bun through compatible ESM entry points
+- **Module formats:** ESM and CommonJS
+- **TypeScript:** Declaration files are included
+
+## Package entry points
+
+| Import                           | Purpose                                               |
+| -------------------------------- | ----------------------------------------------------- |
+| `@lpm.dev/neo.template`          | Main renderer, parser functions, utilities, and types |
+| `@lpm.dev/neo.template/parser`   | Tokenizer and parser                                  |
+| `@lpm.dev/neo.template/compiler` | Abstract-syntax-tree compiler                         |
+| `@lpm.dev/neo.template/runtime`  | Runtime helpers                                       |
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
